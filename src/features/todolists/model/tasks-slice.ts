@@ -2,8 +2,6 @@ import { createTodolistTC, deleteTodolistTC } from './todolists-slice'
 import { createAppSlice } from '@/common/utils'
 import { tasksApi } from '@/features/todolists/api/tasksApi'
 import type { DomainTask, UpdateTaskModel } from '@/features/todolists/api/tasksApi.types'
-import { TaskStatus } from '@/common/enums'
-import type { RootState } from '@/app/store'
 
 export const tasksSlice = createAppSlice({
   name: 'tasks',
@@ -71,33 +69,30 @@ export const tasksSlice = createAppSlice({
       }
     ),
     changeTaskStatusTC: create.asyncThunk(
-      async (arg: { todolistId: string; taskId: string; status: TaskStatus }, thunkAPI) => {
-        const { todolistId, taskId, status } = arg
-        const allTodolistsTasks = (thunkAPI.getState() as RootState).tasks[todolistId]
-        const task = allTodolistsTasks.find((t) => t.id === taskId)
-        if (!task) {
-          return thunkAPI.rejectWithValue(null)
-        }
-        const model: UpdateTaskModel = {
-          description: task.description,
-          title: task.title,
-          status,
-          priority: task.priority,
-          startDate: task.startDate,
-          deadline: task.deadline,
-        }
+      async (task: DomainTask, { rejectWithValue }) => {
         try {
-          const res = await tasksApi.updateTask({ todolistId, taskId, model })
+          const model: UpdateTaskModel = {
+            description: task.description,
+            title: task.title,
+            status: task.status,
+            priority: task.priority,
+            startDate: task.startDate,
+            deadline: task.deadline,
+          }
+
+          const res = await tasksApi.updateTask({ todolistId: task.todoListId, taskId: task.id, model })
+          // console.log('🔵 Ответ сервера:', res.data.data.item)
           return { task: res.data.data.item }
         } catch (e) {
-          return thunkAPI.rejectWithValue(null)
+          return rejectWithValue(null)
         }
       },
       {
         fulfilled: (state, action) => {
-          const task = state[action.payload.task.todoListId].find((t) => t.id === action.payload.task.id)
+          const updatedTask = action.payload.task
+          const task = state[updatedTask.todoListId].find((t) => t.id === updatedTask.id)
           if (task) {
-            task.status = action.payload.task.status
+            task.status = updatedTask.status
           }
         },
       }
