@@ -98,18 +98,30 @@ export const tasksSlice = createAppSlice({
         },
       }
     ),
-
-    changeTaskTitleAC: create.reducer<{ todolistId: string; taskId: string; title: string }>((state, action) => {
-      const task = state[action.payload.todolistId].find((task) => task.id === action.payload.taskId)
-      if (task) {
-        task.title = action.payload.title
+    changeTaskTitleTC: create.asyncThunk(
+      async (task: DomainTask, { rejectWithValue }) => {
+        try {
+          const res = await tasksApi.updateTask(task)
+          return { task: res.data.data.item }
+        } catch (e) {
+          return rejectWithValue(null)
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          const updatedTask = action.payload.task
+          const task = state[updatedTask.todoListId].find((t) => t.id === updatedTask.id)
+          if (task) {
+            task.title = updatedTask.title
+          }
+        },
       }
-    }),
+    ),
   }),
 })
 
 export const { selectTasks } = tasksSlice.selectors
-export const { deleteTaskTC, createTaskTC, changeTaskStatusTC, changeTaskTitleAC, fetchTasksTC } = tasksSlice.actions
+export const { deleteTaskTC, createTaskTC, changeTaskStatusTC, changeTaskTitleTC, fetchTasksTC } = tasksSlice.actions
 export const tasksReducer = tasksSlice.reducer
 
 export type TasksState = Record<string, DomainTask[]>
