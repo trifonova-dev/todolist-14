@@ -1,7 +1,8 @@
 import { createTodolistTC, deleteTodolistTC } from './todolists-slice'
 import { createAppSlice } from '@/common/utils'
 import { tasksApi } from '@/features/todolists/api/tasksApi'
-import type { DomainTask, UpdateTaskModel } from '@/features/todolists/api/tasksApi.types'
+import type { DomainTask } from '@/features/todolists/api/tasksApi.types'
+import { setAppStatusAC } from '@/app/app-slice'
 
 export const tasksSlice = createAppSlice({
   name: 'tasks',
@@ -22,9 +23,12 @@ export const tasksSlice = createAppSlice({
     fetchTasksTC: create.asyncThunk(
       async (todolistId: string, thunkAPI) => {
         try {
+          thunkAPI.dispatch(setAppStatusAC({ status: 'loading' }))
           const res = await tasksApi.getTasks(todolistId)
+          thunkAPI.dispatch(setAppStatusAC({ status: 'succeeded' }))
           return { todolistId, tasks: res.data.items }
         } catch {
+          thunkAPI.dispatch(setAppStatusAC({ status: 'failed' }))
           return thunkAPI.rejectWithValue(null)
         }
       },
@@ -37,9 +41,12 @@ export const tasksSlice = createAppSlice({
     createTaskTC: create.asyncThunk(
       async (arg: { todolistId: string; title: string }, thunkAPI) => {
         try {
+          thunkAPI.dispatch(setAppStatusAC({ status: 'loading' }))
           const res = await tasksApi.createTask(arg)
+          thunkAPI.dispatch(setAppStatusAC({ status: 'succeeded' }))
           return { task: res.data.data.item }
         } catch {
+          thunkAPI.dispatch(setAppStatusAC({ status: 'failed' }))
           return thunkAPI.rejectWithValue(null)
         }
       },
@@ -69,21 +76,15 @@ export const tasksSlice = createAppSlice({
       }
     ),
     changeTaskStatusTC: create.asyncThunk(
-      async (task: DomainTask, { rejectWithValue }) => {
+      async (task: DomainTask, { rejectWithValue, dispatch }) => {
         try {
-          const model: UpdateTaskModel = {
-            description: task.description,
-            title: task.title,
-            status: task.status,
-            priority: task.priority,
-            startDate: task.startDate,
-            deadline: task.deadline,
-          }
-
-          const res = await tasksApi.updateTask({ todolistId: task.todoListId, taskId: task.id, model })
+          dispatch(setAppStatusAC({ status: 'loading' }))
+          const res = await tasksApi.updateTask(task)
           // console.log('🔵 Ответ сервера:', res.data.data.item)
+          dispatch(setAppStatusAC({ status: 'succeeded' }))
           return { task: res.data.data.item }
         } catch (e) {
+          dispatch(setAppStatusAC({ status: 'failed' }))
           return rejectWithValue(null)
         }
       },
