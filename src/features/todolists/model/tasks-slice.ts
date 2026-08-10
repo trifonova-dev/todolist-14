@@ -60,9 +60,12 @@ export const tasksSlice = createAppSlice({
     deleteTaskTC: create.asyncThunk(
       async (arg: { taskId: string; todolistId: string }, thunkAPI) => {
         try {
+          thunkAPI.dispatch(setAppStatusAC({ status: 'loading' }))
           await tasksApi.deleteTask(arg)
+          thunkAPI.dispatch(setAppStatusAC({ status: 'succeeded' }))
           return arg
         } catch {
+          thunkAPI.dispatch(setAppStatusAC({ status: 'failed' }))
           return thunkAPI.rejectWithValue(null)
         }
       },
@@ -100,11 +103,14 @@ export const tasksSlice = createAppSlice({
       }
     ),
     changeTaskTitleTC: create.asyncThunk(
-      async (task: DomainTask, { rejectWithValue }) => {
+      async (task: DomainTask, { rejectWithValue, dispatch }) => {
         try {
+          dispatch(setAppStatusAC({ status: 'loading' }))
           const res = await tasksApi.updateTask(task)
+          dispatch(setAppStatusAC({ status: 'succeeded' }))
           return { task: res.data.data.item }
         } catch (e) {
+          dispatch(setAppStatusAC({ status: 'failed' }))
           return rejectWithValue(null)
         }
       },
@@ -121,7 +127,7 @@ export const tasksSlice = createAppSlice({
     updateTaskTC: create.asyncThunk(
       async (
         arg: { todolistId: string; taskId: string; domainModel: Partial<UpdateTaskModel> },
-        { rejectWithValue, getState }
+        { dispatch, rejectWithValue, getState }
       ) => {
         try {
           const state = getState() as RootState
@@ -129,10 +135,12 @@ export const tasksSlice = createAppSlice({
           if (!task) return rejectWithValue(null)
 
           const updatedTask = { ...task, ...arg.domainModel }
-
+          dispatch(setAppStatusAC({ status: 'loading' }))
           const res = await tasksApi.updateTask(updatedTask)
+          dispatch(setAppStatusAC({ status: 'succeeded' }))
           return { todolistId: arg.todolistId, task: res.data.data.item }
         } catch (e) {
+          dispatch(setAppStatusAC({ status: 'failed' }))
           return rejectWithValue(null)
         }
       },

@@ -1,15 +1,15 @@
-import { changeThemeModeAC, selectStatus, selectThemeMode } from "@/app/app-slice.ts"
-import { useAppDispatch, useAppSelector } from "@/common/hooks"
-import { containerSx } from "@/common/styles"
-import { getTheme } from "@/common/theme"
-import { NavButton } from "@/common/components/NavButton/NavButton"
-import MenuIcon from "@mui/icons-material/Menu"
-import AppBar from "@mui/material/AppBar"
-import Container from "@mui/material/Container"
-import IconButton from "@mui/material/IconButton"
-import Switch from "@mui/material/Switch"
-import Toolbar from "@mui/material/Toolbar"
-import { LinearProgress } from "@mui/material"
+import { changeThemeModeAC, selectStatus, selectThemeMode } from '@/app/app-slice.ts'
+import { useAppDispatch, useAppSelector } from '@/common/hooks'
+import { containerSx } from '@/common/styles'
+import { getTheme } from '@/common/theme'
+import { NavButton } from '@/common/components/NavButton/NavButton'
+import MenuIcon from '@mui/icons-material/Menu'
+import AppBar from '@mui/material/AppBar'
+import Container from '@mui/material/Container'
+import IconButton from '@mui/material/IconButton'
+import Switch from '@mui/material/Switch'
+import Toolbar from '@mui/material/Toolbar'
+import { LinearProgress } from '@mui/material'
 
 export const Header = () => {
   const themeMode = useAppSelector(selectThemeMode)
